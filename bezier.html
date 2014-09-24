@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" type="text/css" href="default.css">
+  <link rel="stylesheet" type="text/css" href="normalize.css">
+  <title>bezier curves</title>
+  
+  
+<script type='text/javascript'>//<![CDATA[ 
+window.onload=function(){
+    c = console
+
+    var canvas = document.getElementById("c")
+
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight - 20;
+
+    var g_ctx = canvas.getContext('2d');
+    g_ctx.fillStyle = "red";
+    g_ctx.font = 'bold 30px sans-serif';
+    g_ctx.fillText("Click me", 50, 50)
+    g_ctx.fillText("and move around", 50, 100)
+    g_ctx.fillText("and click again !", 50, 150)
+
+    var g_waypoints = []
+    var g_fillstyle = "red"
+    var g_bgFillstyle = "white"
+
+    fillstyleList = ["red", "blue", "green", "yellow" ]
+
+    canvas.onclick = function(e) {
+        g_waypoints.push( {x:e.clientX, y:e.clientY} );
+        g_fillstyle = fillstyleList[ g_waypoints.length % fillstyleList.length ]
+    }
+
+    canvas.onmousemove = function(e) {
+        // clear the canvas
+        if(g_waypoints.length > 0)
+        {
+            g_ctx.fillStyle = g_bgFillstyle;
+            g_ctx.fillRect(0, 0, canvas.width, canvas.height)
+            
+            // draw the picture : goes from (30,30) to the same point with bezier curves between
+            g_ctx.fillStyle = g_fillstyle
+            g_ctx.beginPath();
+            g_ctx.moveTo(30, 30);
+            
+            for( var i = 0; i < g_waypoints.length; i++)
+            {
+                g_ctx.bezierCurveTo(e.clientX , e.clientY, e.clientX , e.clientY, g_waypoints[i].x, g_waypoints[i].y);
+            }
+            g_ctx.lineTo(30, 30);
+            g_ctx.fill();
+        }
+    }
+}//]]>  
+
+</script>
+
+
+</head>
+<body>
+  <html>
+    <body>
+        <canvas id="c"></canvas>
+	<a class="backLink" href="index.html">&lt;&lt; Back</a>
+    </body>
+</html>
+  
+</body>
+
+
+</html>
+

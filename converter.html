@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <link rel="stylesheet" type="text/css" href="default.css">
+    <link rel="stylesheet" type="text/css" href="normalize.css">
+    <title>A few javascript tools</title>
+
+</head>
+    <body>
+    
+    <div id="content">
+
+        <h1 class="section">Converter</h1>
+
+        <div>
+            <label for="binary" onclick="getElementById('binary').select()">Binary:</label>
+            <input onChange="binChange()" id="binary" type="text"/>
+        </div>
+        <div>
+            <label for="hexadecimal" onclick="getElementById('hexadecimal').select()">Hexa:</label>
+            <input onChange="hexChange()" id="hexadecimal" type="text"/>
+        </div>
+        <div>
+            <label for="decimal" onclick="getElementById('decimal').select()">Decimal:</label>
+            <input onClick="this.select();" id="decimal" type="text"/>
+        </div>
+        
+        <div>
+            <label for="octal" onclick="getElementById('octal').select()">Octal:</label>
+            <input onClick="this.select();" id="octal" type="text"/>
+        </div>
+
+	<a class="backLink" href="index.html">&lt;&lt; Back</a>
+        
+        <script type="text/javascript" src="converter.js"></script>
+    </div>
+    </body>
+</html>

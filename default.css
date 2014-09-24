@@ -42,3 +42,26 @@ input {
     cursor:pointer;
     text-align:center;
 }
+
+.buttonWarn { 
+    padding-top: 5px;
+    padding-bottom: 5px;
+    border: 1px solid black;
+    background-color:red;
+    cursor:pointer;
+    text-align:center;
+    width:50%;
+    margin-left:auto;
+    margin-right:auto;
+}
+
+.backLink { 
+    display:block;
+    margin-top: 20px;
+    padding-top: 15px;;
+    border-top: 1px solid black;
+    text-align:center;
+    width:100%;
+    margin-left:auto;
+    margin-right:auto;
+}

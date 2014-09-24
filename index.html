@@ -1,48 +1,25 @@
+<!DOCTYPE html>
 <html>
 <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <link rel="stylesheet" type="text/css" href="default.css">
     <link rel="stylesheet" type="text/css" href="normalize.css">
+    <title>Js Experiments</title>
 
 </head>
     <body>
     
     <div id="content">
 
-        <h1 class="section">Chrono</h1>
-    
-        <div class="centralData" id="counter"> ---- </div>
-        
-        <div class="button" id="start" onClick="start()">Start</div> 
-        <div class="button" onClick="step()" id="step">Step</div> 
-        <div class="button" onClick="reset()" id="reset">Reset</div>
-        <div style="text-align:center; margin-bottom:0px; border-top:1px solid black;">Step Date; Total Time; Laps time</div>
-        <textarea rows="10" id="entries"/></textarea>
-
-        <script type="text/javascript" src="chrono.js"></script>
-        
-        <!--                            -->
-        
-        <h1 class="section">Converter</h1>
-
-        <div>
-            <label for="binary" onclick="getElementById('binary').select()">Binary:</label>
-            <input onChange="binChange()" id="binary" type="text"/>
-        </div>
-        <div>
-            <label for="hexadecimal" onclick="getElementById('hexadecimal').select()">Hexa:</label>
-            <input onChange="hexChange()" id="hexadecimal" type="text"/>
-        </div>
-        <div>
-            <label for="decimal" onclick="getElementById('decimal').select()">Decimal:</label>
-            <input onClick="this.select();" id="decimal" type="text"/>
-        </div>
-        
-        <div>
-            <label for="octal" onclick="getElementById('octal').select()">Octal:</label>
-            <input onClick="this.select();" id="octal" type="text"/>
-        </div>
-        
-        <script type="text/javascript" src="converter.js"></script>
+        <h1 class="section">Tools</h1>
+	<ul>
+		<li><a href="chrono.html">A chronometer</a></li>
+		<li><a href="converter.html">hex/bin/whatever converter</a></li>
+	</ul>
+        <h1 class="section">Experiments</h1>
+	<ul>
+		<li><a href="bezier.html">Bezier curves</a></li>
+	</ul>
     </div>
     </body>
 </html>
