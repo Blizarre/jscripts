@@ -1,50 +1,61 @@
-var logger = document.getElementById("logger");
-var resetButton = document.getElementById("reset");
-var brightnessSlider = document.getElementById("brightness");
-var showLog = document.getElementById("showLog");
+var MINI = require('minified');
+var _=MINI._, $=MINI.$, $$=MINI.$$, EE=MINI.EE, HTML=MINI.HTML;
 
-// Get a context from our canvas object with id = "webglcanvas".
-var canvas = document.getElementById("webglcanvas");
-
-var g_program;
-const g_defaultPosition = [3.5,0.5];
-
-var g_position = g_defaultPosition.slice(0);
-var g_zoom = 200.0;
-var g_brightness = brightnessSlider.value;
-
-function updateLoggerVisibility() 
+$(function()
 {
-	logger.style.display = showLog.checked?"block":"none";
-}
+// TODO: Refactoring, refactoring, refactoring !!!!
 
-updateLoggerVisibility();
-
-
-showLog.onchange = function()
+/////////////////////////// LOGGER ///////////////////////////
+$("#showLog").on('change', function()
 {
-	updateLoggerVisibility();
-}
+	if(this.get('checked') === true)
+		$("#logger").show();
+	else
+		$("#logger").hide();
+});
 
-resetButton.onclick = function() {
-	logger.value = "";
+$("#showLog").set('checked', false);
+$("#logger").hide();
+
+function log(msg) { $('#logger').add(msg + '\n'); }
+
+var g_dragOrigin = null;
+
+var resetButton = $('#reset').on('click', function()
+{
+	$('#logger').fill();
 	g_position = g_defaultPosition.slice(0);
-}
-
-brightnessSlider.onchange = function()
-{
-	g_brightness = brightnessSlider.value;
 	drawFractal();
-}
+});
 
-function log(msg) { logger.value += msg + "\n"; }
+// Get a context from our canvas object with id = "fractalCanvas".
+var canvas = $$("#fractalCanvas");
 
-log("Starting");
+var g_zoom = 200.0;
+var g_program;
+var g_defaultPosition;
+var g_position;
 
+var g_brightness = $("#brightness").get('value');
+
+
+$("#brightness").on( 'change', function()
+{
+	g_brightness = this.get('value');
+	drawFractal();
+} );
 
 canvas.width  = window.innerWidth;
 canvas.height  = window.innerHeight - 100;
-var g_dragOrigin = null;
+
+// center fractal on canvas
+g_defaultPosition = [(canvas.width / g_zoom) * 0.5 ,(canvas.height / g_zoom) * 0.5];
+g_position = g_defaultPosition.slice(0);
+
+
+
+log("Starting");
+
 
 canvas.onmousedown = function(evt)
 {
@@ -60,17 +71,18 @@ canvas.onmouseup = function(a)
 
 canvas.onwheel = function(wheelEvt)
 {
-	if(wheelEvt.deltaY > 0)
+	if(wheelEvt.deltaY < 0)
 	{
 		g_zoom *= 1.1;
-		g_position[0] /= 0.9;
-		g_position[1] /= 0.9;
+//		g_position[0] /= 1.1;
+//		g_position[1] /= 1.1;
 	}
 	else
-	{
+	{/*
 		g_zoom /= 1.1;
 		g_position[0] *= 0.9;
 		g_position[1] *= 0.9;
+		*/
 	}
 	drawFractal();
 }
@@ -94,6 +106,9 @@ var gl = this.gl = canvas.getContext("experimental-webgl", { preserveDrawingBuff
 catch (e) {
 	log("getContext fail");
 }
+
+initFractal()
+drawFractal()
 
 
 function loadProgram(gl, vertexShader, fragmentShader)
@@ -236,5 +251,4 @@ function drawFractal()
 
 }
 
-initFractal()
-drawFractal()
+});
