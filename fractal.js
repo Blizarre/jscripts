@@ -1,8 +1,36 @@
 var MINI = require('minified');
 var _=MINI._, $=MINI.$, $$=MINI.$$, EE=MINI.EE, HTML=MINI.HTML;
 
+
+var g_zoom
+var g_program;
+var g_defaultPosition;
+var g_position;
+var g_brightness;
+var g_glContext;
+var g_dragOrigin;
+var g_canvas;
+
+
 $(function()
 {
+	
+
+// Get a context from our canvas object with id = "fractalCanvas".
+g_canvas = $$("#fractalCanvas");
+g_brightness = $("#brightness").get('value');
+g_zoom = 200.0;
+
+g_canvas.width  = window.innerWidth;
+g_canvas.height  = window.innerHeight - 100;
+
+// center fractal on canvas
+g_defaultPosition = [(g_canvas.width / g_zoom) * 0.5 ,(g_canvas.height / g_zoom) * 0.5];
+g_position = g_defaultPosition.slice(0);
+
+
+
+
 // TODO: Refactoring, refactoring, refactoring !!!!
 
 /////////////////////////// LOGGER ///////////////////////////
@@ -19,57 +47,42 @@ $("#logger").hide();
 
 function log(msg) { $('#logger').add(msg + '\n'); }
 
-var g_dragOrigin = null;
 
-var resetButton = $('#reset').on('click', function()
+
+$('#reset').on('click', function()
 {
 	$('#logger').fill();
 	g_position = g_defaultPosition.slice(0);
-	drawFractal();
+	drawFractal(g_glContext);
 });
-
-// Get a context from our canvas object with id = "fractalCanvas".
-var canvas = $$("#fractalCanvas");
-
-var g_zoom = 200.0;
-var g_program;
-var g_defaultPosition;
-var g_position;
-
-var g_brightness = $("#brightness").get('value');
 
 
 $("#brightness").on( 'change', function()
 {
 	g_brightness = this.get('value');
-	drawFractal();
+	drawFractal(g_glContext);
 } );
 
-canvas.width  = window.innerWidth;
-canvas.height  = window.innerHeight - 100;
 
-// center fractal on canvas
-g_defaultPosition = [(canvas.width / g_zoom) * 0.5 ,(canvas.height / g_zoom) * 0.5];
-g_position = g_defaultPosition.slice(0);
 
 
 
 log("Starting");
 
 
-canvas.onmousedown = function(evt)
+g_canvas.onmousedown = function(evt)
 {
 	log("Begin Dragging");
 	g_dragOrigin = {x:evt.clientX, y:evt.clientY, orig_pos:g_position.slice(0)};
 }
 
-canvas.onmouseup = function(a)
+g_canvas.onmouseup = function(a)
 {
 	log("Stop Dragging");
-	g_dragOrigin = null;
+	g_dragOrigin = undefined;
 }
 
-canvas.onwheel = function(wheelEvt)
+g_canvas.onwheel = function(wheelEvt)
 {
 	if(wheelEvt.deltaY < 0)
 	{
@@ -84,31 +97,33 @@ canvas.onwheel = function(wheelEvt)
 		g_position[1] *= 0.9;
 		*/
 	}
-	drawFractal();
+	drawFractal(g_glContext);
 }
 
-canvas.onmousemove = function(a)
+g_canvas.onmousemove = function(a)
 {
 	if(g_dragOrigin)
 	{
 		g_position = g_dragOrigin.orig_pos.slice(0);
 		g_position[0] += (a.clientX - g_dragOrigin.x)/g_zoom;
 		g_position[1] -= (a.clientY - g_dragOrigin.y)/g_zoom;
-		drawFractal();
+		drawFractal(g_glContext);
 	}
 }
 
+
+
 try {
-// Get the context into a local gl and and a public gl.
-// Use preserveDrawingBuffer:true to keep the drawing buffer after presentation
-var gl = this.gl = canvas.getContext("experimental-webgl", { preserveDrawingBuffer: true });
+	// Get the context into a local gl and and a public gl.
+	// Use preserveDrawingBuffer:true to keep the drawing buffer after presentation
+	g_glContext = g_canvas.getContext("webgl") || g_canvas.getContext("experimental-webgl");
 }
 catch (e) {
-	log("getContext fail");
+	log("canvas getContext fail");
 }
 
-initFractal()
-drawFractal()
+initFractal(g_glContext)
+drawFractal(g_glContext)
 
 
 function loadProgram(gl, vertexShader, fragmentShader)
@@ -188,7 +203,7 @@ function getShader(gl, id) {
 }
 
 
-function initFractal()
+function initFractal(gl)
 {
 	try
 	{
@@ -199,12 +214,12 @@ function initFractal()
 	}
 	catch (e) {
 	// Display the fail on the screen if the shaders/program fail.
-	log('shader fail: ' + e.message);
+	log('initFractal fail: ' + e.message);
 	}
 }
 
 
-function drawFractal()
+function drawFractal(gl)
 {
 	var a = new Date()
 	try
@@ -245,7 +260,7 @@ function drawFractal()
 	}
 	catch (e) {
 		// Display the fail on the screen if the shaders/program fail.
-		log('shader fail: ' + e.message);
+		log('drawFractal fail: ' + e.message);
 	}
 	log("time: " + (new Date() - a) + " ms. position: " + g_position)
 
