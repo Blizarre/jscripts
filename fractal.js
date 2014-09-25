@@ -21,8 +21,6 @@ g_canvas = $$("#fractalCanvas");
 g_brightness = $("#brightness").get('value');
 g_zoom = 200.0;
 
-g_canvas.width  = window.innerWidth;
-g_canvas.height  = window.innerHeight - 100;
 
 // center fractal on canvas
 g_defaultPosition = [(g_canvas.width / g_zoom) * 0.5 ,(g_canvas.height / g_zoom) * 0.5];
@@ -47,7 +45,31 @@ $("#logger").hide();
 
 function log(msg) { $('#logger').add(msg + '\n'); }
 
+function resizeCanvas(gl, newSize)
+{
+	log("Resize webgl canvas to " + newSize.x + ", " + newSize.y);
+	g_canvas.width  = newSize.x;
+	g_canvas.height = newSize.y;
+	gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+}
 
+initFractal();
+drawFractal(g_glContext);
+
+$('#small').on('click', function()
+{
+	resizeCanvas(g_glContext, {x:256, y:256});
+});
+
+$('#medium').on('click', function()
+{
+	resizeCanvas(g_glContext, {x:512, y:512});
+});
+
+$('#maximum').on('click', function()
+{
+	resizeCanvas(g_glContext, {x:screen.availWidth, y:screen.availHeight});
+});
 
 $('#reset').on('click', function()
 {
@@ -62,8 +84,6 @@ $("#brightness").on( 'change', function()
 	g_brightness = this.get('value');
 	drawFractal(g_glContext);
 } );
-
-
 
 
 
@@ -111,19 +131,7 @@ g_canvas.onmousemove = function(a)
 	}
 }
 
-
-
-try {
-	// Get the context into a local gl and and a public gl.
-	// Use preserveDrawingBuffer:true to keep the drawing buffer after presentation
-	g_glContext = g_canvas.getContext("webgl") || g_canvas.getContext("experimental-webgl");
-}
-catch (e) {
-	log("canvas getContext fail");
-}
-
-initFractal(g_glContext)
-drawFractal(g_glContext)
+resizeCanvas({x:512, y:512});
 
 
 function loadProgram(gl, vertexShader, fragmentShader)
@@ -160,7 +168,7 @@ function loadProgram(gl, vertexShader, fragmentShader)
 //   WebGL context
 //   id of script element containing the shader to load
 function getShader(gl, id) {
-  var shaderScript = document.getElementById(id);
+  var shaderScript = $$(id);
 
   // error - element with supplied id couldn't be retrieved
   if (!shaderScript) {
@@ -203,14 +211,21 @@ function getShader(gl, id) {
 }
 
 
-function initFractal(gl)
+function initFractal()
 {
+	try {
+		g_glContext = g_canvas.getContext("webgl") || g_canvas.getContext("experimental-webgl");
+	}
+	catch (e) {
+		log("canvas getContext fail");
+	}
+
 	try
 	{
 		// setup a GLSL program
-		var vertexShader = getShader(gl, "vertexShader");
-		var fragmentShader = getShader(gl, "fractal");
-		g_program = loadProgram(gl, vertexShader, fragmentShader);
+		var vertexShader = getShader(g_glContext, "#vertexShader");
+		var fragmentShader = getShader(g_glContext, "#fractal");
+		g_program = loadProgram(g_glContext, vertexShader, fragmentShader);
 	}
 	catch (e) {
 	// Display the fail on the screen if the shaders/program fail.
@@ -224,8 +239,7 @@ function drawFractal(gl)
 	var a = new Date()
 	try
 	{
-
-	gl.useProgram(g_program);
+		gl.useProgram(g_program);
 
 		// look up where the vertex data needs to go.
 		var positionLocation = gl.getAttribLocation(g_program, "a_position");
@@ -259,7 +273,6 @@ function drawFractal(gl)
 		gl.finish();
 	}
 	catch (e) {
-		// Display the fail on the screen if the shaders/program fail.
 		log('drawFractal fail: ' + e.message);
 	}
 	log("time: " + (new Date() - a) + " ms. position: " + g_position)
