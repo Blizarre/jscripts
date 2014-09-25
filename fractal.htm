@@ -5,41 +5,40 @@
 		<script type="x-shader/x-fragment" id="fractal">
 precision lowp float;
 uniform vec2 u_fractalPosition;
+uniform vec2 u_cJulia;
 uniform float u_fractalZoom;
 uniform float u_brightness;
 const int MAX_ITER=1024;
 
 void main(void)
 {
-	float c = 0.0, z2x = 0.0, z2y = 0.0;
+	vec2 z2;
 	vec4 finalColor = vec4(0.0); 
-	vec2 pos = vec2(gl_FragCoord.x/u_fractalZoom - u_fractalPosition.x, gl_FragCoord.y/u_fractalZoom - u_fractalPosition.y);// gl_PointCoord;
-	vec2 z = vec2( 0, 0 );
-	
+
+	vec2 z = vec2( (gl_FragCoord.x/u_fractalZoom - u_fractalPosition.x), (gl_FragCoord.y/u_fractalZoom - u_fractalPosition.y) );
 
 	float tmp;
 	int iterNumber;
 	
 	for(int i = 0; i < MAX_ITER; i++)
 	{
-	z2x = z.x * z.x;
-	z2y = z.y * z.y;
-	
-			if(z2x + z2y > 4.0)
-			{
-					iterNumber = i;
-					break;
-			}
-					
-			tmp = z2x - z2y + pos.x;
-			z.y = 2.0 * z.x * z.y + pos.y;
-			z.x = tmp;
+		z2 = vec2(z.x * z.x, z.y * z.y); // z2x = zx * zx; z2y = zy * zy
+
+		if( (z2.x + z2.y) > 4.0)
+		{
+				iterNumber = i;
+				break;
+		}
+				
+		tmp = z2.x - z2.y + u_cJulia.x;
+		z.y = 2.0 * z.x * z.y + u_cJulia.y;
+		z.x = tmp;
 			
 	}
 			
-	c = float(iterNumber) / float(MAX_ITER);        
+	tmp = float(iterNumber) / float(MAX_ITER);        
 	
-	finalColor = u_brightness*vec4(vec3(c, c, c)* vec3(0.8, 0.75, 1.0), 1.0); 
+	finalColor = u_brightness*vec4(vec3(tmp, tmp, tmp)* vec3(0.8, 0.75, 1.0), 1.0); 
 	
 	gl_FragColor =  finalColor;
 }
@@ -59,9 +58,12 @@ void main(void) {
 	</head>
 	<body>
 		<div><canvas style="margin:left:auto; margin-right:auto;" id="fractalCanvas">No canvas support</canvas></div>
-		<div>Brightness: <input type="range" id="brightness" min="1" max="300" step="10" value="100" /></div>
+		<div>c0: <input type="range" id="c0" min="0" max="100" step="1" value="10" /></div>
+		<div>c1: <input type="range" id="c1" min="0" max="100" step="1" value="10" /></div>
+		<div>Brightness: <input type="range" id="brightness" min="0" max="100" step="10" value="100" /><input id="brightness_value"></input></div>
 		<div>Show Log: <input type="checkbox" id="showLog" checked="false" /><input type="button" id="reset" value="Reset" /></div> 
 		<div>Size : <input type="button" id="small" value="Small" /> <input type="button" id="medium" value="Medium" /> <input type="button" id="maximum" value="Maximum" /></div> 
+		<div><input type="button" id="animate" value="Animate" /></div>
 		<div><textarea style="width:100%; height:100px;" id="logger"></textarea></div>
 	</body>
 </html>

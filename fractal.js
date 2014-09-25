@@ -10,7 +10,7 @@ var g_brightness;
 var g_glContext;
 var g_dragOrigin;
 var g_canvas;
-
+var g_cJulia;
 
 $(function()
 {
@@ -20,7 +20,7 @@ $(function()
 g_canvas = $$("#fractalCanvas");
 g_brightness = $("#brightness").get('value');
 g_zoom = 200.0;
-
+g_cJulia = [ 1, 1];
 
 // center fractal on canvas
 g_defaultPosition = [(g_canvas.width / g_zoom) * 0.5 ,(g_canvas.height / g_zoom) * 0.5];
@@ -51,6 +51,7 @@ function resizeCanvas(gl, newSize)
 	g_canvas.width  = newSize.x;
 	g_canvas.height = newSize.y;
 	gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+	drawFractal(g_glContext);
 }
 
 initFractal();
@@ -78,10 +79,58 @@ $('#reset').on('click', function()
 	drawFractal(g_glContext);
 });
 
+$('#animate').on('click', function()
+{
+	startAnimation();
+});
+
+
+var g_animTime;
+function startAnimation()
+{
+	g_animTime = 0;
+	window.setInterval( animationIteration, 10 );
+}
+
+function animationIteration()
+{
+	var c0 = Math.sin(1.2 * g_animTime / 360.0) * 100;
+	var c1 = Math.cos(0.7 * g_animTime / 360.0) * 100;
+	var brght = Math.cos(1.3 * g_animTime / 360.0) * 50 + 50;
+
+	$('#c0').set('value', c0);
+	$('#c1').set('value', c1);
+	
+	g_cJulia[0] = c0;
+	g_cJulia[1] = c1;
+	setBrightness(brght);
+	g_animTime += 1;
+	drawFractal(g_glContext);
+}
+
+function setBrightness(brght)
+{
+		$('#brightness').set('value', brght);
+		$('#brightness_value').set('value', brght.toFixed(2));
+		g_brightness = brght
+}
 
 $("#brightness").on( 'change', function()
 {
 	g_brightness = this.get('value');
+	drawFractal(g_glContext);
+} );
+
+
+$("#c0").on( 'change', function()
+{
+	g_cJulia[0] = this.get('value');
+	drawFractal(g_glContext);
+} );
+
+$("#c1").on( 'change', function()
+{
+	g_cJulia[1] = this.get('value');
 	drawFractal(g_glContext);
 } );
 
@@ -131,7 +180,7 @@ g_canvas.onmousemove = function(a)
 	}
 }
 
-resizeCanvas({x:512, y:512});
+resizeCanvas(g_glContext, {x:512, y:512});
 
 
 function loadProgram(gl, vertexShader, fragmentShader)
@@ -243,13 +292,17 @@ function drawFractal(gl)
 
 		// look up where the vertex data needs to go.
 		var positionLocation = gl.getAttribLocation(g_program, "a_position");
+		var cJulia = gl.getUniformLocation(g_program, "u_cJulia");
 		var move = gl.getUniformLocation(g_program, "u_fractalPosition");
 		var zoom = gl.getUniformLocation(g_program, "u_fractalZoom");
 		var brightness = gl.getUniformLocation(g_program, "u_brightness");
 
+		gl.uniform2f(cJulia, g_cJulia[0] / 100.0 , g_cJulia[1] / 100.0);
 		gl.uniform2f(move, g_position[0], g_position[1]);
 		gl.uniform1f(zoom, g_zoom);
-		gl.uniform1f(brightness, g_brightness);
+		gl.uniform1f(brightness, g_brightness * 3);
+			
+			
 			
 		// Create a buffer and put a single clipspace rectangle in
 		// it (2 triangles)
