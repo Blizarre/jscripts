@@ -11,6 +11,7 @@ var g_glContext;
 var g_dragOrigin;
 var g_canvas;
 var g_cJulia;
+var g_animTime;
 
 $(function()
 {
@@ -57,6 +58,13 @@ function resizeCanvas(gl, newSize)
 initFractal();
 drawFractal(g_glContext);
 
+var c0 = new Control('#c0', [ function(value) { g_cJulia[0] = value } ], -1, 1, g_glContext);
+var c1 = new Control('#c1', [ function(value) { g_cJulia[1] = value } ], -1, 1, g_glContext);
+var brightness = new Control('#brightness', [ function(value) { g_brightness = value } ], 1, 300, g_glContext);
+
+
+
+
 $('#small').on('click', function()
 {
 	resizeCanvas(g_glContext, {x:256, y:256});
@@ -85,7 +93,6 @@ $('#animate').on('click', function()
 });
 
 
-var g_animTime;
 function startAnimation()
 {
 	g_animTime = 0;
@@ -94,46 +101,63 @@ function startAnimation()
 
 function animationIteration()
 {
-	var c0 = Math.sin(1.2 * g_animTime / 360.0) * 100;
-	var c1 = Math.cos(0.7 * g_animTime / 360.0) * 100;
-	var brght = Math.cos(1.3 * g_animTime / 360.0) * 50 + 50;
+	var c0 = -1 + 2 * Math.sin(1.2 * g_animTime / 360.0);
+	var c1 = -1 + 2 * Math.cos(0.7 * g_animTime / 360.0);
+	var brght = 150 + 50 * Math.cos(1.3 * g_animTime / 360.0);
 
 	$('#c0').set('value', c0);
 	$('#c1').set('value', c1);
 	
 	g_cJulia[0] = c0;
 	g_cJulia[1] = c1;
-	setBrightness(brght);
+	g_brightness = brght;
 	g_animTime += 1;
 	drawFractal(g_glContext);
 }
 
-function setBrightness(brght)
+function Control(id, callBackList, min, max, gl)
 {
-		$('#brightness').set('value', brght);
-		$('#brightness_value').set('value', brght.toFixed(2));
-		g_brightness = brght
+	this.ref = $(id);
+	this.refTxt = $(id + '_value');
+
+	this.min = min;
+	this.max = max;
+	this.range = this.max - this.min;
+	this.glContext = gl;
+	this.callBackList = callBackList;
+	
+	registerEvent(this, this.ref);
 }
 
-$("#brightness").on( 'change', function()
+function registerEvent(control, minifiedItem)
 {
-	g_brightness = this.get('value');
-	drawFractal(g_glContext);
-} );
+	minifiedItem.on('change', function()
+	{
+		control.changeValue(minifiedItem.get('value'), true);
+	});
+}
 
-
-$("#c0").on( 'change', function()
+Control.prototype.changeValue = function(value, shouldNormalize)
 {
-	g_cJulia[0] = this.get('value');
-	drawFractal(g_glContext);
-} );
-
-$("#c1").on( 'change', function()
-{
-	g_cJulia[1] = this.get('value');
-	drawFractal(g_glContext);
-} );
-
+	var normValue;
+	var sliderValue;
+	
+	if(shouldNormalize)
+	{
+		sliderValue = value;
+		normValue = (value/100.0 * this.range) + this.min;
+	}
+	else
+	{
+		sliderValue = 100.0 * (this.value - this.min ) / this.range;	
+		normValue = value;
+	}
+	
+	this.refTxt.set('value', normValue.toFixed(2));
+	this.ref.set('value', sliderValue);
+	_.each(this.callBackList, function(item) { item(normValue) });
+	drawFractal(this.glContext);
+};
 
 
 log("Starting");
@@ -143,13 +167,13 @@ g_canvas.onmousedown = function(evt)
 {
 	log("Begin Dragging");
 	g_dragOrigin = {x:evt.clientX, y:evt.clientY, orig_pos:g_position.slice(0)};
-}
+};
 
 g_canvas.onmouseup = function(a)
 {
 	log("Stop Dragging");
 	g_dragOrigin = undefined;
-}
+};
 
 g_canvas.onwheel = function(wheelEvt)
 {
@@ -167,7 +191,7 @@ g_canvas.onwheel = function(wheelEvt)
 		*/
 	}
 	drawFractal(g_glContext);
-}
+};
 
 g_canvas.onmousemove = function(a)
 {
@@ -178,9 +202,10 @@ g_canvas.onmousemove = function(a)
 		g_position[1] -= (a.clientY - g_dragOrigin.y)/g_zoom;
 		drawFractal(g_glContext);
 	}
-}
+};
 
 resizeCanvas(g_glContext, {x:512, y:512});
+
 
 
 function loadProgram(gl, vertexShader, fragmentShader)
@@ -209,7 +234,7 @@ function loadProgram(gl, vertexShader, fragmentShader)
 
   // if all is well, return the program object
   return program;
-};
+}
 
 
 // Loads a shader from a script tag
@@ -297,10 +322,10 @@ function drawFractal(gl)
 		var zoom = gl.getUniformLocation(g_program, "u_fractalZoom");
 		var brightness = gl.getUniformLocation(g_program, "u_brightness");
 
-		gl.uniform2f(cJulia, g_cJulia[0] / 100.0 , g_cJulia[1] / 100.0);
+		gl.uniform2f(cJulia, g_cJulia[0], g_cJulia[1]);
 		gl.uniform2f(move, g_position[0], g_position[1]);
 		gl.uniform1f(zoom, g_zoom);
-		gl.uniform1f(brightness, g_brightness * 3);
+		gl.uniform1f(brightness, g_brightness);
 			
 			
 			

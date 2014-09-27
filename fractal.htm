@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 	<head>
 		<script src="minified-web.js" ></script>
@@ -58,9 +59,9 @@ void main(void) {
 	</head>
 	<body>
 		<div><canvas style="margin:left:auto; margin-right:auto;" id="fractalCanvas">No canvas support</canvas></div>
-		<div>c0: <input type="range" id="c0" min="0" max="100" step="1" value="10" /></div>
-		<div>c1: <input type="range" id="c1" min="0" max="100" step="1" value="10" /></div>
-		<div>Brightness: <input type="range" id="brightness" min="0" max="100" step="10" value="100" /><input id="brightness_value"></input></div>
+		<div>c0: <input type="range" id="c0" min="0" max="100" step="1" value="10" /><input size="5" id="c0_value"></div>
+		<div>c1: <input type="range" id="c1" min="0" max="100" step="1" value="10" /><input size="5" id="c1_value"></div>
+		<div>Brightness: <input type="range" id="brightness" min="0" max="100" step="1" value="100" /><input size="5" id="brightness_value" /></div>
 		<div>Show Log: <input type="checkbox" id="showLog" checked="false" /><input type="button" id="reset" value="Reset" /></div> 
 		<div>Size : <input type="button" id="small" value="Small" /> <input type="button" id="medium" value="Medium" /> <input type="button" id="maximum" value="Maximum" /></div> 
 		<div><input type="button" id="animate" value="Animate" /></div>
