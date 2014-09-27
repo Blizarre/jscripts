@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
 	<head>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="normalize.css">
 		<script src="minified-web.js" ></script>
 		<script src="fractal.js" ></script>
 		<script type="x-shader/x-fragment" id="fractal">
@@ -55,13 +57,23 @@ void main(void) {
 	gl_Position = vec4(a_position, 0, 1);
 } 
 		</script>
+		<style>
+.sliderControl {
+    width: 256px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align:center;
+    margin-top: 10px;
 
+    border-top: 1px solid black;
+}
+		</style>
 	</head>
 	<body>
-		<div><canvas style="margin:left:auto; margin-right:auto;" id="fractalCanvas">No canvas support</canvas></div>
-		<div>c0: <input type="range" id="c0" min="0" max="100" step="1" value="10" /><input size="5" id="c0_value"></div>
-		<div>c1: <input type="range" id="c1" min="0" max="100" step="1" value="10" /><input size="5" id="c1_value"></div>
-		<div>Brightness: <input type="range" id="brightness" min="0" max="100" step="1" value="100" /><input size="5" id="brightness_value" /></div>
+		<div style="width:100%; text-align:center;"><canvas id="fractalCanvas">No canvas support</canvas></div>
+		<div class='sliderControl'>c0: <input type="range" id="c0" min="0" max="100" step="1" value="10" /><input size="5" id="c0_value"></div>
+		<div class='sliderControl'>c1: <input type="range" id="c1" min="0" max="100" step="1" value="10" /><input size="5" id="c1_value"></div>
+		<div class='sliderControl'>Brightness: <input type="range" id="brightness" min="0" max="100" step="1" value="100" /><input size="5" id="brightness_value" /></div>
 		<div>Show Log: <input type="checkbox" id="showLog" checked="false" /><input type="button" id="reset" value="Reset" /></div> 
 		<div>Size : <input type="button" id="small" value="Small" /> <input type="button" id="medium" value="Medium" /> <input type="button" id="maximum" value="Maximum" /></div> 
 		<div><input type="button" id="animate" value="Animate" /></div>

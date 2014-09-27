@@ -180,15 +180,15 @@ g_canvas.onwheel = function(wheelEvt)
 	if(wheelEvt.deltaY < 0)
 	{
 		g_zoom *= 1.1;
+		// TODO: zoom on center of image
 //		g_position[0] /= 1.1;
 //		g_position[1] /= 1.1;
 	}
 	else
-	{/*
+	{
 		g_zoom /= 1.1;
-		g_position[0] *= 0.9;
-		g_position[1] *= 0.9;
-		*/
+//		g_position[0] *= 0.9;
+//		g_position[1] *= 0.9;
 	}
 	drawFractal(g_glContext);
 };
