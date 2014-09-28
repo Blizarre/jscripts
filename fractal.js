@@ -18,13 +18,15 @@ $(function()
 	
 
 // Get a context from our canvas object with id = "fractalCanvas".
-g_canvas = $$("#fractalCanvas");
+g_canvas = $("#fractalCanvas");
 g_brightness = $("#brightness").get('value');
-g_zoom = 200.0;
-g_cJulia = [ 1, 1];
+g_cJulia = [];
+g_zoom = 256.0;
+
+
 
 // center fractal on canvas
-g_defaultPosition = [(g_canvas.width / g_zoom) * 0.5 ,(g_canvas.height / g_zoom) * 0.5];
+g_defaultPosition = [0, 0];
 g_position = g_defaultPosition.slice(0);
 
 
@@ -49,21 +51,11 @@ function log(msg) { $('#logger').add(msg + '\n'); }
 function resizeCanvas(gl, newSize)
 {
 	log("Resize webgl canvas to " + newSize.x + ", " + newSize.y);
-	g_canvas.width  = newSize.x;
-	g_canvas.height = newSize.y;
+	g_canvas.set('width', newSize.x);
+	g_canvas.set('height', newSize.y);
 	gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 	drawFractal(g_glContext);
 }
-
-initFractal();
-drawFractal(g_glContext);
-
-var c0 = new Control('#c0', [ function(value) { g_cJulia[0] = value } ], -1, 1, g_glContext);
-var c1 = new Control('#c1', [ function(value) { g_cJulia[1] = value } ], -1, 1, g_glContext);
-var brightness = new Control('#brightness', [ function(value) { g_brightness = value } ], 1, 300, g_glContext);
-
-
-
 
 $('#small').on('click', function()
 {
@@ -92,6 +84,20 @@ $('#animate').on('click', function()
 	startAnimation();
 });
 
+$('#fullscreen').on('click', function()
+{
+	resizeCanvas(g_glContext, {x:screen.availWidth, y:screen.availHeight});
+	// From: https://developer.mozilla.org/fr/docs/Web/Guide/DOM/Using_full_screen_mode
+	var canvas =$$("#fractalCanvas"); 
+	if (canvas.requestFullscreen) {
+	  canvas.requestFullscreen();
+	} else if (canvas.mozRequestFullScreen) {
+	  canvas.mozRequestFullScreen();
+	} else if (canvas.webkitRequestFullscreen) {
+	  canvas.webkitRequestFullscreen();
+	}
+});
+
 
 function startAnimation()
 {
@@ -101,16 +107,14 @@ function startAnimation()
 
 function animationIteration()
 {
-	var c0 = -1 + 2 * Math.sin(1.2 * g_animTime / 360.0);
-	var c1 = -1 + 2 * Math.cos(0.7 * g_animTime / 360.0);
-	var brght = 150 + 50 * Math.cos(1.3 * g_animTime / 360.0);
+	var val_c0 = Math.sin(1.2 * g_animTime / 360.0);
+	var val_c1 = Math.cos(0.7 * g_animTime / 360.0);
+	//g_zoom += 10 * (Math.cos(g_animTime / 360.0) - Math.cos((g_animTime - 1) / 360.0) );
 
-	$('#c0').set('value', c0);
-	$('#c1').set('value', c1);
+	g_c0.changeValue(val_c0);
+	g_c1.changeValue(val_c1);
+  //	g_brightnessControl.changeValue(val_brght);
 	
-	g_cJulia[0] = c0;
-	g_cJulia[1] = c1;
-	g_brightness = brght;
 	g_animTime += 1;
 	drawFractal(g_glContext);
 }
@@ -145,11 +149,11 @@ Control.prototype.changeValue = function(value, shouldNormalize)
 	if(shouldNormalize)
 	{
 		sliderValue = value;
-		normValue = (value/100.0 * this.range) + this.min;
+		normValue = (this.range * value/100.0) + this.min;
 	}
 	else
 	{
-		sliderValue = 100.0 * (this.value - this.min ) / this.range;	
+		sliderValue = 100.0 * (value - this.min ) / this.range;	
 		normValue = value;
 	}
 	
@@ -160,40 +164,33 @@ Control.prototype.changeValue = function(value, shouldNormalize)
 };
 
 
-log("Starting");
 
-
-g_canvas.onmousedown = function(evt)
+g_canvas.on('mousedown', function(evt)
 {
 	log("Begin Dragging");
 	g_dragOrigin = {x:evt.clientX, y:evt.clientY, orig_pos:g_position.slice(0)};
-};
+});
 
-g_canvas.onmouseup = function(a)
+g_canvas.on('mouseup', function(a)
 {
 	log("Stop Dragging");
 	g_dragOrigin = undefined;
-};
+});
 
-g_canvas.onwheel = function(wheelEvt)
+g_canvas.on('wheel', function(wheelEvt)
 {
 	if(wheelEvt.deltaY < 0)
 	{
 		g_zoom *= 1.1;
-		// TODO: zoom on center of image
-//		g_position[0] /= 1.1;
-//		g_position[1] /= 1.1;
 	}
 	else
 	{
 		g_zoom /= 1.1;
-//		g_position[0] *= 0.9;
-//		g_position[1] *= 0.9;
 	}
 	drawFractal(g_glContext);
-};
+});
 
-g_canvas.onmousemove = function(a)
+g_canvas.on('mousemove', function(a)
 {
 	if(g_dragOrigin)
 	{
@@ -202,9 +199,7 @@ g_canvas.onmousemove = function(a)
 		g_position[1] -= (a.clientY - g_dragOrigin.y)/g_zoom;
 		drawFractal(g_glContext);
 	}
-};
-
-resizeCanvas(g_glContext, {x:512, y:512});
+});
 
 
 
@@ -288,7 +283,8 @@ function getShader(gl, id) {
 function initFractal()
 {
 	try {
-		g_glContext = g_canvas.getContext("webgl") || g_canvas.getContext("experimental-webgl");
+		// minifiedList[0] to get access to the raw DOM Object
+		g_glContext = g_canvas[0].getContext("webgl") || g_canvas[0].getContext("experimental-webgl");
 	}
 	catch (e) {
 		log("canvas getContext fail");
@@ -321,10 +317,12 @@ function drawFractal(gl)
 		var move = gl.getUniformLocation(g_program, "u_fractalPosition");
 		var zoom = gl.getUniformLocation(g_program, "u_fractalZoom");
 		var brightness = gl.getUniformLocation(g_program, "u_brightness");
-
+		var highQuality = gl.getUniformLocation(g_program, "u_highQuality");
+		var qual = ($('#highQuality').get('checked') === true ? 1 : 0);
 		gl.uniform2f(cJulia, g_cJulia[0], g_cJulia[1]);
-		gl.uniform2f(move, g_position[0], g_position[1]);
 		gl.uniform1f(zoom, g_zoom);
+		gl.uniform1i(highQuality, qual );
+		gl.uniform2f(move, g_position[0] + 0.5 * gl.drawingBufferWidth / g_zoom, g_position[1] + 0.5 * gl.drawingBufferHeight / g_zoom);
 		gl.uniform1f(brightness, g_brightness);
 			
 			
@@ -356,5 +354,28 @@ function drawFractal(gl)
 	log("time: " + (new Date() - a) + " ms. position: " + g_position)
 
 }
+
+
+log("Starting");
+
+initFractal();
+
+resizeCanvas(g_glContext, {x:window.screen.availWidth - 20, y:512});
+
+drawFractal(g_glContext);
+
+
+// TODO: make object
+$('#highQuality').on('change', function() { drawFractal(g_glContext); } ) ;
+
+var g_c0 = new Control('#c0', [ function(value) { g_cJulia[0] = value } ], -1, 1, g_glContext);
+var g_c1 = new Control('#c1', [ function(value) { g_cJulia[1] = value } ], -1, 1, g_glContext);
+var g_brightnessControl = new Control('#brightness', [ function(value) { g_brightness = value } ], 1, 300, g_glContext);
+
+g_c0.changeValue(-0.76);
+g_c1.changeValue(-0.08);
+g_brightnessControl.changeValue(4);
+
+
 
 });

@@ -6,24 +6,20 @@
 		<script src="minified-web.js" ></script>
 		<script src="fractal.js" ></script>
 		<script type="x-shader/x-fragment" id="fractal">
-precision lowp float;
+precision highp float;
 uniform vec2 u_fractalPosition;
 uniform vec2 u_cJulia;
 uniform float u_fractalZoom;
 uniform float u_brightness;
-const int MAX_ITER=1024;
+uniform int u_highQuality;
 
-void main(void)
+void computeLowQuality(in vec2 z, out float value)
 {
 	vec2 z2;
-	vec4 finalColor = vec4(0.0); 
-
-	vec2 z = vec2( (gl_FragCoord.x/u_fractalZoom - u_fractalPosition.x), (gl_FragCoord.y/u_fractalZoom - u_fractalPosition.y) );
-
 	float tmp;
 	int iterNumber;
 	
-	for(int i = 0; i < MAX_ITER; i++)
+	for(int i = 0; i < 1024; i++)
 	{
 		z2 = vec2(z.x * z.x, z.y * z.y); // z2x = zx * zx; z2y = zy * zy
 
@@ -36,12 +32,52 @@ void main(void)
 		tmp = z2.x - z2.y + u_cJulia.x;
 		z.y = 2.0 * z.x * z.y + u_cJulia.y;
 		z.x = tmp;
+	}
+	
+	value = float(iterNumber) / 1024.0;// / float(MAX_ITER);        
+}
+
+void computeHighQuality(in vec2 z, out float value)
+{
+	vec2 z2;
+	float tmp;
+	int iterNumber;
+	
+	for(int i = 0; i < 4096; i++)
+	{
+		z2 = vec2(z.x * z.x, z.y * z.y); // z2x = zx * zx; z2y = zy * zy
+
+		if( (z2.x + z2.y) > 16.0)
+		{
+				iterNumber = i;
+				break;
+		}
+				
+		tmp = z2.x - z2.y + u_cJulia.x;
+		z.y = 2.0 * z.x * z.y + u_cJulia.y;
+		z.x = tmp;
 			
 	}
-			
-	tmp = float(iterNumber) / float(MAX_ITER);        
+
+	value = float(iterNumber) - log2( log( sqrt( z.x * z.x + z.y * z.y )/log(4.0)) );
+	value /=  1024.0;// / float(MAX_ITER);        
+
+}
+
+
+void main(void)
+{
+	vec4 finalColor = vec4(0.0); 
+	vec2 z = vec2( (gl_FragCoord.x/u_fractalZoom - u_fractalPosition.x), (gl_FragCoord.y/u_fractalZoom - u_fractalPosition.y) );
+	float value;
 	
-	finalColor = u_brightness*vec4(vec3(tmp, tmp, tmp)* vec3(0.8, 0.75, 1.0), 1.0); 
+	if(u_highQuality != 0)
+		computeHighQuality(z, value);
+	else
+		computeLowQuality(z, value);
+	
+	
+	finalColor = u_brightness*vec4(vec3(value, value, value)* vec3(0.8, 0.75, 1.0), 1.0); 
 	
 	gl_FragColor =  finalColor;
 }
@@ -58,7 +94,7 @@ void main(void) {
 } 
 		</script>
 		<style>
-.sliderControl {
+.control {
     width: 256px;
     margin-left: auto;
     margin-right: auto;
@@ -70,13 +106,14 @@ void main(void) {
 		</style>
 	</head>
 	<body>
-		<div style="width:100%; text-align:center;"><canvas id="fractalCanvas">No canvas support</canvas></div>
-		<div class='sliderControl'>c0: <input type="range" id="c0" min="0" max="100" step="1" value="10" /><input size="5" id="c0_value"></div>
-		<div class='sliderControl'>c1: <input type="range" id="c1" min="0" max="100" step="1" value="10" /><input size="5" id="c1_value"></div>
-		<div class='sliderControl'>Brightness: <input type="range" id="brightness" min="0" max="100" step="1" value="100" /><input size="5" id="brightness_value" /></div>
-		<div>Show Log: <input type="checkbox" id="showLog" checked="false" /><input type="button" id="reset" value="Reset" /></div> 
-		<div>Size : <input type="button" id="small" value="Small" /> <input type="button" id="medium" value="Medium" /> <input type="button" id="maximum" value="Maximum" /></div> 
-		<div><input type="button" id="animate" value="Animate" /></div>
+		<div style="width:100%; text-align:center; margin:10 px;"><canvas id="fractalCanvas">No canvas support</canvas></div>
+		<div class='control'>c0: <input type="range" id="c0" min="0" max="100" step="1" value="10" /><input size="5" id="c0_value"></div>
+		<div class='control'>c1: <input type="range" id="c1" min="0" max="100" step="1" value="10" /><input size="5" id="c1_value"></div>
+		<div class='control'>Brightness: <input type="range" id="brightness" min="0" max="100" step="1" value="100" /><input size="5" id="brightness_value" /></div>
+		<div class='control'>Canvas Size :<br/><input type="button" id="small" value="Small" /> <input type="button" id="medium" value="Medium" /> <input type="button" id="maximum" value="Maximum" /></div>
+		<div class='control'>High quality: <br/><input type="checkbox" id="highQuality" value="false" /></div> 
+		<div class='control'><input type="button" id="animate" value="Animate" /> Full Screen: <input type="button" id="fullscreen" value="Fullscreen" /></div>
+		<div class='control'>Show Log: <input type="checkbox" id="showLog" checked="false" /><input type="button" id="reset" value="Reset" /></div> 
 		<div><textarea style="width:100%; height:100px;" id="logger"></textarea></div>
 	</body>
 </html>
