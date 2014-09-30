@@ -109,7 +109,7 @@ function registerEvent(value, minifiedItem, shouldNormalize)
 {
 	minifiedItem.on('change', function()
 	{
-		value.changeValue(minifiedItem.get('value'), shouldNormalize);
+		value.changeValue(parseFloat(minifiedItem.get('value')), shouldNormalize);
 	});
 }
 
@@ -290,7 +290,7 @@ $('#highQuality').on('change', function() { drawFractal(); } ) ;
 
 g_c0 = new Value('#c0', [ function(value) { g_cJulia[0] = value } ], -1, 1);
 g_c1 = new Value('#c1', [ function(value) { g_cJulia[1] = value } ], -1, 1);
-g_brightnessValue = new Value('#brightness', [ function(value) { g_brightness = value } ], -1, 1);
+g_brightnessValue = new Value('#brightness', [ function(value) { g_brightness = value } ], -1.5, 1);
 g_contrastValue = new Value('#contrast', [ function(value) { g_contrast = value } ], 0, 10);
 
 g_c0.changeValue(-0.76);

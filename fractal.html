@@ -37,7 +37,7 @@ float computeLowQuality(in vec2 z)//, out float value)
 		z.x = tmp;
 	}
 	
-	return log(float(iterNumber));      
+	return log(float(iterNumber + 1));      
 }
 
 float computeHighQuality(in vec2 z)//, out float value)
@@ -64,7 +64,7 @@ float computeHighQuality(in vec2 z)//, out float value)
 	}
 
 	// Smoothing the fractal: result = IterNumber - log2( log( abs(z) / log(N) ) )
-	value = float(iterNumber) - log2( log( sqrt( z.x * z.x + z.y * z.y )/log(4.0)) );
+	value = float(iterNumber + 1) - log2( log( sqrt( z.x * z.x + z.y * z.y )/log(4.0)) );
 	return log(value);  
 
 }
@@ -106,6 +106,34 @@ void main(void) {
     border-top: 1px solid black;
 }
 
+.LargeControl {
+	margin-right:auto;
+	margin-left:auto;
+	width:512px;
+}
+
+input { 
+	margin-left: 5px;
+	margin-right: 5px;
+}
+
+.smallControl {
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+	text-align:center;
+    width: 256px;
+  	float:left;
+}
+
+.underFloat {
+	border-top: none;
+	clear:both;	
+}
+
 .comment {
 	text-align:center;
 	margin-top: 0px;
@@ -121,25 +149,25 @@ void main(void) {
 		<div class='control'>
 			<input type="button" id="animate" value="Animate" /> <input type="button" style="display:none" id="stopAnimate" value="Stop" /> <input type="button" id="fullscreen" value="Go Fullscreen" />
 		</div>
-		<div class='control'>
-			<label for="c0">Julia c0:</label>
-			<input type="range" id="c0" min="0" max="500" step="1" value="10" /><input size="5" id="c0_value" />
+		<div class='LargeControl'>
+			<div class='smallControl'>
+				<label for="c0">Julia c0:</label>
+				<input type="range" id="c0" min="0" max="500" step="1" value="10" /><input size="5" id="c0_value" /><br/>
+				<label for="c1">Julia c1:</label>
+				<input type="range" id="c1" min="0" max="500" step="1" value="10" /><input size="5" id="c1_value" />
+			</div>
+			<div class='smallControl'>
+				<label for="brightness">Brightness:</label>
+				<input type="range" id="brightness" min="0" max="500" step="1" value="100" /><input size="5" id="brightness_value" /><br/>
+				<label for="contrast">Contrast:</label>
+				<input type="range" id="contrast" min="0" max="500" step="1" value="100" /><input size="5" id="contrast_value" />
+			</div>
 		</div>
-		<div class='control'>
-			<label for="c1">Julia c1:</label>
-			<input type="range" id="c1" min="0" max="500" step="1" value="10" /><input size="5" id="c1_value" />
-		</div>
-		<div class='control'>
-			<label for="brightness">Brightness:</label>
-			<input type="range" id="brightness" min="0" max="500" step="1" value="100" /><input size="5" id="brightness_value" /><br/>
-			<label for="contrast">Contrast:</label>
-			<input type="range" id="contrast" min="0" max="500" step="1" value="100" /><input size="5" id="contrast_value" />
-		</div>
-		<div class='control'>
+		<div class='control underFloat'>
 			Canvas Size :<br/>
-			<input type="button" id="small" value="Small" />
-			<input type="button" id="medium" value="Medium" />
-			<input type="button" id="maximum" value="Maximum" />
+			<input type="button" id="small" value="S" />
+			<input type="button" id="medium" value="M" />
+			<input type="button" id="maximum" value="Full" />
 		</div>
 		<div class='control'>
 			<label for="highQuality">High quality:</label><br/>
