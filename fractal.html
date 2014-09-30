@@ -3,7 +3,7 @@
 	<head>
 		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 		<link rel="stylesheet" type="text/css" href="normalize.css">
-		<script src="minified-web.js" ></script>
+		<script src="minified-src.js" ></script>
 		<script src="webgl.js" ></script>
 		<script src="fractal.js" ></script>
 		<script type="x-shader/x-fragment" id="fractal">
@@ -105,26 +105,35 @@ void main(void) {
     margin-top: 10px;
     border-top: 1px solid black;
 }
+
+.comment {
+	text-align:center;
+	margin-top: 0px;
+	color:grey;
+	font-size:70%;
+	font-style:italic;
+}
 		</style>
 	</head>
 	<body>
 		<div style="width:100%; text-align:center; margin:10 px;"><canvas id="fractalCanvas">No canvas support</canvas></div>
+		<p class="comment">Use mouse to move, scroll to zoom</p>
 		<div class='control'>
 			<input type="button" id="animate" value="Animate" /> <input type="button" style="display:none" id="stopAnimate" value="Stop" /> <input type="button" id="fullscreen" value="Go Fullscreen" />
 		</div>
 		<div class='control'>
 			<label for="c0">Julia c0:</label>
-			<input type="range" id="c0" min="0" max="100" step="1" value="10" /><input size="5" id="c0_value" />
+			<input type="range" id="c0" min="0" max="500" step="1" value="10" /><input size="5" id="c0_value" />
 		</div>
 		<div class='control'>
 			<label for="c1">Julia c1:</label>
-			<input type="range" id="c1" min="0" max="100" step="1" value="10" /><input size="5" id="c1_value" />
+			<input type="range" id="c1" min="0" max="500" step="1" value="10" /><input size="5" id="c1_value" />
 		</div>
 		<div class='control'>
 			<label for="brightness">Brightness:</label>
-			<input type="range" id="brightness" min="0" max="100" step="1" value="100" /><input size="5" id="brightness_value" /><br/>
+			<input type="range" id="brightness" min="0" max="500" step="1" value="100" /><input size="5" id="brightness_value" /><br/>
 			<label for="contrast">Contrast:</label>
-			<input type="range" id="contrast" min="0" max="100" step="1" value="100" /><input size="5" id="contrast_value" />
+			<input type="range" id="contrast" min="0" max="500" step="1" value="100" /><input size="5" id="contrast_value" />
 		</div>
 		<div class='control'>
 			Canvas Size :<br/>

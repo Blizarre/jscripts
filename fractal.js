@@ -7,7 +7,7 @@ var _=MINI._, $=MINI.$, $$=MINI.$$, EE=MINI.EE, HTML=MINI.HTML;
 // WebGlComponent object: take care of all the webgl shader/program handling
 var g_gl;
 
-// Vaalues object
+// Values object
 var g_c0;
 var g_c1;
 var g_brightnessValue;
@@ -22,6 +22,9 @@ var g_brightness; // brightness passed to the fragment shader
 var g_contrast; // contrast passed to the fragment shader
 var g_dragOrigin; // Used during mouseDrag to remember the point of the first click
 var g_cJulia; // Parameters of the Julia fractal
+var g_MAX_SLIDER = 500.0; // Maximum value of the sliders, for normalization
+
+var g_preFullscreenCanvasSize; // SIze of the webgl canvas before the user click on the full screen button
 
 // ANIMATIONS
 var g_animTime; // Frame number since the beginning of the animation
@@ -115,15 +118,14 @@ Value.prototype.changeValue = function(value, shouldNormalize)
 {
 	var normValue;
 	var sliderValue;
-	
 	if(shouldNormalize)
 	{
 		sliderValue = value;
-		normValue = (this.range * value/100.0) + this.min;
+		normValue = (this.range * value/g_MAX_SLIDER) + this.min;
 	}
 	else
 	{
-		sliderValue = 100.0 * (value - this.min ) / this.range;	
+		sliderValue = g_MAX_SLIDER * (value - this.min ) / this.range;	
 		normValue = value;
 	}
 	
@@ -200,17 +202,32 @@ $('#animate').on('click', function()
 
 $('#fullscreen').on('click', function()
 {
+	g_preFullscreenCanvasSize = g_gl.getCanvasSize();
 	g_gl.resizeCanvas({x:screen.availWidth, y:screen.availHeight});
 	// From: https://developer.mozilla.org/fr/docs/Web/Guide/DOM/Using_full_screen_mode
 	var canvas =$$("#fractalCanvas"); 
 	if (canvas.requestFullscreen) {
 	  canvas.requestFullscreen();
+	} else if (canvas.msRequestFullscreen) {
+	  canvas.msRequestFullscreen();
 	} else if (canvas.mozRequestFullScreen) {
 	  canvas.mozRequestFullScreen();
 	} else if (canvas.webkitRequestFullscreen) {
 	  canvas.webkitRequestFullscreen();
 	}
+	drawFractal();
 });
+
+// Detect when the user exit fullscreen : Inspired from http://stackoverflow.com/questions/10706070/how-to-detect-when-a-page-exits-fullscreen
+$(document).on('webkitfullscreenchange mozfullscreenchange fullscreenchange MSFullscreenChange', function()      {       
+  var isFullScreen = (document.webkitIsFullScreen || document.mozFullScreen || ( document.msFullscreenElement !== undefined && document.msFullscreenElement !== null ) );
+  if (! isFullScreen )
+   { 
+        g_gl.resizeCanvas(g_preFullscreenCanvasSize);
+        drawFractal();
+   }
+});
+
 
 $("#fractalCanvas").on('mousedown', function(evt)
 {
@@ -253,7 +270,8 @@ g_brightness = $("#brightness").get('value');
 g_cJulia = [];
 g_zoom = 256.0;
 g_interval = undefined;
-
+// Set the maximum value for a slider. They should all have the same max value
+g_MAX_SLIDER = $$('#brightness').max;
 
 // center fractal on canvas
 g_defaultPosition = [0, 0];

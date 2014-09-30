@@ -142,11 +142,16 @@ WebGlComponent.prototype.getShaderFromDOM = function(id) {
   return shader;
 };
 
-
+// Resize the canvas DOM element and the WebGl context
 WebGlComponent.prototype.resizeCanvas = function(newSize)
 {
 	this.logFunction("Resize webgl canvas to " + newSize.x + ", " + newSize.y);
 	this.canvas.width = newSize.x;
 	this.canvas.height = newSize.y;
 	this.glContext.viewport(0, 0, newSize.x, newSize.y);
+}
+
+WebGlComponent.prototype.getCanvasSize = function()
+{
+	return { x:this.canvas.width, y:this.canvas.height };
 }
