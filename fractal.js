@@ -56,79 +56,6 @@ function drawFractal()
 }
 
 // TODO: Refactoring, refactoring, refactoring !!!!
-
-/////////////////////////// LOGGER ///////////////////////////
-$("#showLog").on('change', function()
-{
-	if(this.get('checked') === true)
-		$("#logger").show();
-	else
-		$("#logger").hide();
-});
-
-$("#showLog").set('checked', false);
-$("#logger").hide();
-
-function log(msg) { $('#logger').add(msg + '\n'); }
-
-
-
-$('#small').on('click', function()
-{
-	g_gl.resizeCanvas({x:256, y:256});
-	drawFractal();
-});
-
-$('#medium').on('click', function()
-{
-	g_gl.resizeCanvas({x:512, y:512});
-	drawFractal();
-});
-
-$('#maximum').on('click', function()
-{
-	g_gl.resizeCanvas({x:screen.availWidth, y:screen.availHeight});
-	drawFractal();
-});
-
-$('#reset').on('click', function()
-{
-	$('#logger').fill();
-	g_position = g_defaultPosition.slice(0);
-	drawFractal();
-});
-
-$('#stopAnimate').on('click', function()
-{
-	stopAnimation();
-	$('#animate').show();
-	$('#stopAnimate').hide();
-});
-
-
-$('#animate').on('click', function()
-{
-	startAnimation();
-	$('#stopAnimate').show();
-	$('#animate').hide();
-});
-
-
-$('#fullscreen').on('click', function()
-{
-	g_gl.resizeCanvas({x:screen.availWidth, y:screen.availHeight});
-	// From: https://developer.mozilla.org/fr/docs/Web/Guide/DOM/Using_full_screen_mode
-	var canvas =$$("#fractalCanvas"); 
-	if (canvas.requestFullscreen) {
-	  canvas.requestFullscreen();
-	} else if (canvas.mozRequestFullScreen) {
-	  canvas.mozRequestFullScreen();
-	} else if (canvas.webkitRequestFullscreen) {
-	  canvas.webkitRequestFullscreen();
-	}
-});
-
-
 function startAnimation()
 {
 	g_animTime = 0;
@@ -208,6 +135,83 @@ Value.prototype.changeValue = function(value, shouldNormalize)
 
 ///////////////// Event handling with the DOM
 
+
+// Execute when all assets (html + js) are loaded by the browser
+// TODO: make this list smaller, refactoring needed
+$(function()
+{
+	
+/////////////////////////// LOGGER ///////////////////////////
+$("#showLog").on('change', function()
+{
+	if(this.get('checked') === true)
+		$("#logger").show();
+	else
+		$("#logger").hide();
+});
+
+$("#showLog").set('checked', false);
+$("#logger").hide();
+
+function log(msg) { $('#logger').add(msg + '\n'); }
+
+
+
+$('#small').on('click', function()
+{
+	g_gl.resizeCanvas({x:256, y:256});
+	drawFractal();
+});
+
+$('#medium').on('click', function()
+{
+	g_gl.resizeCanvas({x:512, y:512});
+	drawFractal();
+});
+
+$('#maximum').on('click', function()
+{
+	g_gl.resizeCanvas({x:screen.availWidth, y:screen.availHeight});
+	drawFractal();
+});
+
+$('#reset').on('click', function()
+{
+	$('#logger').fill();
+	g_position = g_defaultPosition.slice(0);
+	drawFractal();
+});
+
+$('#stopAnimate').on('click', function()
+{
+	stopAnimation();
+	$('#animate').show();
+	$('#stopAnimate').hide();
+});
+
+
+$('#animate').on('click', function()
+{
+	startAnimation();
+	$('#stopAnimate').show();
+	$('#animate').hide();
+});
+
+
+$('#fullscreen').on('click', function()
+{
+	g_gl.resizeCanvas({x:screen.availWidth, y:screen.availHeight});
+	// From: https://developer.mozilla.org/fr/docs/Web/Guide/DOM/Using_full_screen_mode
+	var canvas =$$("#fractalCanvas"); 
+	if (canvas.requestFullscreen) {
+	  canvas.requestFullscreen();
+	} else if (canvas.mozRequestFullScreen) {
+	  canvas.mozRequestFullScreen();
+	} else if (canvas.webkitRequestFullscreen) {
+	  canvas.webkitRequestFullscreen();
+	}
+});
+
 $("#fractalCanvas").on('mousedown', function(evt)
 {
 	log("Begin Dragging");
@@ -244,41 +248,36 @@ $("#fractalCanvas").on('mousemove', function(a)
 	}
 });
 
+// Get a context from our canvas object with id = "fractalCanvas".
+g_brightness = $("#brightness").get('value');
+g_cJulia = [];
+g_zoom = 256.0;
+g_interval = undefined;
 
 
-// Execute when all assets (html + js) are loaded by the browser
-$(function()
-{
-	// Get a context from our canvas object with id = "fractalCanvas".
-	g_brightness = $("#brightness").get('value');
-	g_cJulia = [];
-	g_zoom = 256.0;
-	g_interval = undefined;
-	
-	
-	// center fractal on canvas
-	g_defaultPosition = [0, 0];
-	g_position = g_defaultPosition.slice(0);
+// center fractal on canvas
+g_defaultPosition = [0, 0];
+g_position = g_defaultPosition.slice(0);
 
 
-	log("Starting");
-	g_gl = new WebGlComponent('#fractalCanvas', '#vertexShader', '#fractal', log);
-	g_gl.resizeCanvas({x:window.screen.availWidth - 20, y:512});
-	
-	drawFractal();
-	
-	
-	// TODO: make an object
-	$('#highQuality').on('change', function() { drawFractal(); } ) ;
-	
-	g_c0 = new Value('#c0', [ function(value) { g_cJulia[0] = value } ], -1, 1);
-	g_c1 = new Value('#c1', [ function(value) { g_cJulia[1] = value } ], -1, 1);
-	g_brightnessValue = new Value('#brightness', [ function(value) { g_brightness = value } ], -1, 1);
-	g_contrastValue = new Value('#contrast', [ function(value) { g_contrast = value } ], 0, 10);
-	
-	g_c0.changeValue(-0.76);
-	g_c1.changeValue(-0.08);
-	g_brightnessValue.changeValue(-0.6);
-	g_contrastValue.changeValue(0.3);
+log("Starting");
+g_gl = new WebGlComponent('#fractalCanvas', '#vertexShader', '#fractal', log);
+g_gl.resizeCanvas({x:window.screen.availWidth - 20, y:512});
+
+drawFractal();
+
+
+// TODO: make an object
+$('#highQuality').on('change', function() { drawFractal(); } ) ;
+
+g_c0 = new Value('#c0', [ function(value) { g_cJulia[0] = value } ], -1, 1);
+g_c1 = new Value('#c1', [ function(value) { g_cJulia[1] = value } ], -1, 1);
+g_brightnessValue = new Value('#brightness', [ function(value) { g_brightness = value } ], -1, 1);
+g_contrastValue = new Value('#contrast', [ function(value) { g_contrast = value } ], 0, 10);
+
+g_c0.changeValue(-0.76);
+g_c1.changeValue(-0.08);
+g_brightnessValue.changeValue(-0.6);
+g_contrastValue.changeValue(0.3);
 
 });
