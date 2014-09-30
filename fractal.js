@@ -4,24 +4,35 @@ var MINI = require('minified');
 var _=MINI._, $=MINI.$, $$=MINI.$$, EE=MINI.EE, HTML=MINI.HTML;
 
 
-var g_zoom
+// WebGlComponent object: take care of all the webgl shader/program handling
+var g_gl;
+
+// Vaalues object
+var g_c0;
+var g_c1;
+var g_brightnessValue;
+var g_contrastValue;
+
+
+var g_zoom; // Current zoom level 
 var g_defaultPosition;
-var g_position;
-var g_brightness;
-var g_contrast;
-var g_glContext;
-var g_dragOrigin;
-var g_canvas;
-var g_cJulia;
-var g_animTime;
+var g_position; // Position of the central point in the Fractal image
 
-$(function()
-{
-	
+var g_brightness; // brightness passed to the fragment shader
+var g_contrast; // contrast passed to the fragment shader
+var g_dragOrigin; // Used during mouseDrag to remember the point of the first click
+var g_cJulia; // Parameters of the Julia fractal
 
+// ANIMATIONS
+var g_animTime; // Frame number since the beginning of the animation
+var g_interval; // setInterval Object
+
+
+
+// This function will bind the uniforms from the shader program to the values of the fractal formulae.
+// It is called at each image redraw
 var bindValues = function (glObject, glProgram)
 {
-// look up where the vertex data needs to go.
 		var cJulia = glObject.getUniformLocation(glProgram, "u_cJulia");
 		var move = glObject.getUniformLocation(glProgram, "u_fractalPosition");
 		var zoom = glObject.getUniformLocation(glProgram, "u_fractalZoom");
@@ -38,25 +49,11 @@ var bindValues = function (glObject, glProgram)
 };
 
 
-var g_gl = new WebGlComponent('#fractalCanvas', '#vertexShader', '#fractal', log);
-
+// Trigger a redraw of the fractal on screen
 function drawFractal()
 {
 	g_gl.triggerDraw(bindValues);
 }
-
-// Get a context from our canvas object with id = "fractalCanvas".
-g_canvas = $("#fractalCanvas");
-g_brightness = $("#brightness").get('value');
-g_cJulia = [];
-g_zoom = 256.0;
-
-
-
-// center fractal on canvas
-g_defaultPosition = [0, 0];
-g_position = g_defaultPosition.slice(0);
-
 
 // TODO: Refactoring, refactoring, refactoring !!!!
 
@@ -101,10 +98,21 @@ $('#reset').on('click', function()
 	drawFractal();
 });
 
+$('#stopAnimate').on('click', function()
+{
+	stopAnimation();
+	$('#animate').show();
+	$('#stopAnimate').hide();
+});
+
+
 $('#animate').on('click', function()
 {
 	startAnimation();
+	$('#stopAnimate').show();
+	$('#animate').hide();
 });
+
 
 $('#fullscreen').on('click', function()
 {
@@ -124,24 +132,36 @@ $('#fullscreen').on('click', function()
 function startAnimation()
 {
 	g_animTime = 0;
-	window.setInterval( animationIteration, 10 );
+	g_interval = window.setInterval( animationIteration, 10 );
+}
+
+function stopAnimation()
+{
+	g_animTime = 0;
+	clearInterval(g_interval);
 }
 
 function animationIteration()
 {
-	var val_c0 = Math.sin(1.2 * g_animTime / 360.0);
-	var val_c1 = Math.cos(0.7 * g_animTime / 360.0);
-	//g_zoom += 10 * (Math.cos(g_animTime / 360.0) - Math.cos((g_animTime - 1) / 360.0) );
+	// This is ugly, should be able to do this with g_c0.getValue()
+	g_cJulia[0] += 0.0001 * Math.cos(1.2 * g_animTime / 100);
+	g_cJulia[1] -= 0.0001 * Math.sin(0.7 * g_animTime / 100);
 
-	g_c0.changeValue(val_c0);
-	g_c1.changeValue(val_c1);
-  //	g_brightnessControl.changeValue(val_brght);
-	
+	g_c0.changeValue(g_cJulia[0]);
+	g_c1.changeValue(g_cJulia[1]);
+
 	g_animTime += 1;
 	drawFractal();
 }
 
-function Control(id, callBackList, min, max, gl)
+
+// The Value represent a value, and make the glue between the html slider elements and
+// the internal values. Every time the user or the code change a value on any of the Value, 
+// all elements should be updated. Currently the element "id" (should be a slider) and "id_value"
+// a text field.
+// Since the slider is an integer, the value for this Value is normalized between min and max
+// TODO: The real value is not embedded into the Value object, but update through the callBackList. Should be changed
+function Value(id, callBackList, min, max)
 {
 	this.ref = $(id);
 	this.refTxt = $(id + '_value');
@@ -149,21 +169,22 @@ function Control(id, callBackList, min, max, gl)
 	this.min = min;
 	this.max = max;
 	this.range = this.max - this.min;
-	this.glContext = gl;
 	this.callBackList = callBackList;
 	
-	registerEvent(this, this.ref);
+	registerEvent(this, this.ref, true);
+	registerEvent(this, this.refTxt, false);
 }
 
-function registerEvent(control, minifiedItem)
+function registerEvent(value, minifiedItem, shouldNormalize)
 {
 	minifiedItem.on('change', function()
 	{
-		control.changeValue(minifiedItem.get('value'), true);
+		value.changeValue(minifiedItem.get('value'), shouldNormalize);
 	});
 }
 
-Control.prototype.changeValue = function(value, shouldNormalize)
+
+Value.prototype.changeValue = function(value, shouldNormalize)
 {
 	var normValue;
 	var sliderValue;
@@ -185,21 +206,21 @@ Control.prototype.changeValue = function(value, shouldNormalize)
 	drawFractal();
 };
 
+///////////////// Event handling with the DOM
 
-
-g_canvas.on('mousedown', function(evt)
+$("#fractalCanvas").on('mousedown', function(evt)
 {
 	log("Begin Dragging");
 	g_dragOrigin = {x:evt.clientX, y:evt.clientY, orig_pos:g_position.slice(0)};
 });
 
-g_canvas.on('mouseup', function(a)
+$("#fractalCanvas").on('mouseup', function(a)
 {
 	log("Stop Dragging");
 	g_dragOrigin = undefined;
 });
 
-g_canvas.on('wheel', function(wheelEvt)
+$("#fractalCanvas").on('wheel', function(wheelEvt)
 {
 	if(wheelEvt.deltaY < 0)
 	{
@@ -212,7 +233,7 @@ g_canvas.on('wheel', function(wheelEvt)
 	drawFractal();
 });
 
-g_canvas.on('mousemove', function(a)
+$("#fractalCanvas").on('mousemove', function(a)
 {
 	if(g_dragOrigin)
 	{
@@ -224,23 +245,40 @@ g_canvas.on('mousemove', function(a)
 });
 
 
-log("Starting");
 
-g_gl.resizeCanvas({x:window.screen.availWidth - 20, y:512});
+// Execute when all assets (html + js) are loaded by the browser
+$(function()
+{
+	// Get a context from our canvas object with id = "fractalCanvas".
+	g_brightness = $("#brightness").get('value');
+	g_cJulia = [];
+	g_zoom = 256.0;
+	g_interval = undefined;
+	
+	
+	// center fractal on canvas
+	g_defaultPosition = [0, 0];
+	g_position = g_defaultPosition.slice(0);
 
-drawFractal();
 
+	log("Starting");
+	g_gl = new WebGlComponent('#fractalCanvas', '#vertexShader', '#fractal', log);
+	g_gl.resizeCanvas({x:window.screen.availWidth - 20, y:512});
+	
+	drawFractal();
+	
+	
+	// TODO: make an object
+	$('#highQuality').on('change', function() { drawFractal(); } ) ;
+	
+	g_c0 = new Value('#c0', [ function(value) { g_cJulia[0] = value } ], -1, 1);
+	g_c1 = new Value('#c1', [ function(value) { g_cJulia[1] = value } ], -1, 1);
+	g_brightnessValue = new Value('#brightness', [ function(value) { g_brightness = value } ], -1, 1);
+	g_contrastValue = new Value('#contrast', [ function(value) { g_contrast = value } ], 0, 10);
+	
+	g_c0.changeValue(-0.76);
+	g_c1.changeValue(-0.08);
+	g_brightnessValue.changeValue(-0.6);
+	g_contrastValue.changeValue(0.3);
 
-// TODO: make object
-$('#highQuality').on('change', function() { drawFractal(); } ) ;
-
-var g_c0 = new Control('#c0', [ function(value) { g_cJulia[0] = value } ], -1, 1, g_glContext);
-var g_c1 = new Control('#c1', [ function(value) { g_cJulia[1] = value } ], -1, 1, g_glContext);
-var g_brightnessControl = new Control('#brightness', [ function(value) { g_brightness = value } ], -1, 1, g_glContext);
-var g_contrastControl = new Control('#contrast', [ function(value) { g_contrast = value } ], 0, 10, g_glContext);
-
-g_c0.changeValue(-0.76);
-g_c1.changeValue(-0.08);
-g_brightnessControl.changeValue(-0.6);
-g_contrastControl.changeValue(0.3)
 });

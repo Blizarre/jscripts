@@ -1,3 +1,6 @@
+// This function will create a default scene (a plane facing the camera), and load 
+// vertex and fragment shaders from the DOM.
+// This code has been heavily "borrowed" from the internet
 function WebGlComponent(idCanvas, idVertexShader, idFragmentShader, log)
 {
   this.logFunction = log;
@@ -95,7 +98,6 @@ WebGlComponent.prototype.loadProgram = function()
 
 // Loads a shader from a script tag
 // Parameters:
-//   WebGL context
 //   id of script element containing the shader to load
 WebGlComponent.prototype.getShaderFromDOM = function(id) {
   var shaderScript = $$(id);
