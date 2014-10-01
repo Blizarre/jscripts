@@ -17,16 +17,19 @@ uniform int u_highQuality;
 
 float computeLowQuality(in vec2 z)//, out float value)
 {
+	const int MAX_ITER = 1024;
+	const float N = 2.0;
+	
 	vec2 z2;
 	float tmp;
-	int iterNumber;
+	int iterNumber = MAX_ITER;
 	
 	// start at 1, since Log(0) = NaN
-	for(int i = 1; i < 1024; i++)
+	for(int i = 1; i < MAX_ITER; i++)
 	{
 		z2 = vec2(z.x * z.x, z.y * z.y); // z2x = zx * zx; z2y = zy * zy
 
-		if( (z2.x + z2.y) > 4.0)
+		if( (z2.x + z2.y) > N*N)
 		{
 				iterNumber = i;
 				break;
@@ -42,16 +45,19 @@ float computeLowQuality(in vec2 z)//, out float value)
 
 float computeHighQuality(in vec2 z)//, out float value)
 {
+	const int MAX_ITER = 4096;
+	const float N = 4.0;
+
 	vec2 z2;
 	float tmp, value;
-	int iterNumber;
+	int iterNumber = MAX_ITER;
 	
 	// start at 1, since Log(0) = NaN
-	for(int i = 1; i < 4096; i++)
+	for(int i = 1; i < MAX_ITER; i++)
 	{
 		z2 = vec2(z.x * z.x, z.y * z.y); // z2x = zx * zx; z2y = zy * zy
 
-		if( (z2.x + z2.y) > 16.0)
+		if( (z2.x + z2.y) > N * N)
 		{
 				iterNumber = i;
 				break;
@@ -64,7 +70,7 @@ float computeHighQuality(in vec2 z)//, out float value)
 	}
 
 	// Smoothing the fractal: result = IterNumber - log2( log( abs(z) / log(N) ) )
-	value = float(iterNumber + 1) - log2( log( sqrt( z.x * z.x + z.y * z.y )/log(4.0)) );
+	value = float(iterNumber + 1) - log2( log( sqrt( z.x * z.x + z.y * z.y )/log(N)) );
 	return log(value);  
 
 }

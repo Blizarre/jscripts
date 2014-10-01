@@ -27,8 +27,21 @@ var g_MAX_SLIDER = 500.0; // Maximum value of the sliders, for normalization
 var g_preFullscreenCanvasSize; // SIze of the webgl canvas before the user click on the full screen button
 
 // ANIMATIONS
+// From: http://stackoverflow.com/questions/16250687/should-i-use-window-webkitrequestanimationframe-instead-of-setinterval
+var requestAnimationFrame = window.requestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame ||
+        window.oRequestAnimationFrame ||
+        window.msRequestAnimationFrame;
+var cancelAnimationFrame = window.cancelAnimationFrame ||
+        window.webkitCancelRequestAnimationFrame || 
+        window.webkitCancelAnimationFrame ||
+        window.mozCancelRequestAnimationFrame || window.mozCancelAnimationFrame ||
+        window.oCancelRequestAnimationFrame || window.oCancelAnimationFrame ||
+        window.msCancelRequestAnimationFrame || window.msCancelAnimationFrame;
+       
 var g_animTime; // Frame number since the beginning of the animation
-var g_interval; // setInterval Object
+var g_requestAnimationID; // requestAnimationFrame ID
 
 
 
@@ -62,26 +75,34 @@ function drawFractal()
 function startAnimation()
 {
 	g_animTime = 0;
-	g_interval = window.setInterval( animationIteration, 10 );
+	g_requestAnimationID = requestAnimationFrame( animationIteration );
 }
 
 function stopAnimation()
 {
-	g_animTime = 0;
-	clearInterval(g_interval);
+	// cancel the next animation Frame
+	cancelAnimationFrame(g_requestAnimationID);
+	g_requestAnimationID = undefined;
 }
 
-function animationIteration()
+function animationIteration(time)
 {
-	// This is ugly, should be able to do this with g_c0.getValue()
-	g_cJulia[0] += 0.0001 * Math.cos(1.2 * g_animTime / 100);
-	g_cJulia[1] -= 0.0001 * Math.sin(0.7 * g_animTime / 100);
-
-	g_c0.changeValue(g_cJulia[0]);
-	g_c1.changeValue(g_cJulia[1]);
-
-	g_animTime += 1;
-	drawFractal();
+	// If the animation has not been canceled. Shouldn't be needed since stopAnimation will
+	// prevent the execution of this function
+	if(g_requestAnimationID !== undefined)
+	{
+		// This is ugly, should be able to do this with g_c0.setValue()
+		// TODO: link data with Value object
+		g_cJulia[0] += 0.0001 * Math.cos(1.2 * time / 10000);
+		g_cJulia[1] -= 0.0001 * Math.sin(0.7 * time / 10000);
+	
+		g_c0.changeValue(g_cJulia[0]);
+		g_c1.changeValue(g_cJulia[1]);
+	
+		g_animTime += 1;
+		drawFractal();
+		g_requestAnimationID = requestAnimationFrame( animationIteration );
+	}
 }
 
 
@@ -269,7 +290,7 @@ $("#fractalCanvas").on('mousemove', function(a)
 g_brightness = $("#brightness").get('value');
 g_cJulia = [];
 g_zoom = 256.0;
-g_interval = undefined;
+g_requestAnimationID = undefined;
 // Set the maximum value for a slider. They should all have the same max value
 g_MAX_SLIDER = $$('#brightness').max;
 
