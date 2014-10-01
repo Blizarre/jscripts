@@ -1,0 +1,49 @@
+.control {
+    width: 256px;
+    margin-left: auto;
+    padding-top:5px;
+    margin-right: auto;
+    text-align:center;
+    margin-top: 10px;
+    border-top: 1px solid black;
+}
+
+.LargeControl {
+	margin-right:auto;
+	margin-left:auto;
+	width:512px;
+}
+
+input { 
+	margin-left: 5px;
+	margin-right: 5px;
+}
+
+.smallControl {
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+	text-align:center;
+    width: 256px;
+  	float:left;
+}
+
+.underFloat {
+	border-top: none;
+	clear:both;	
+}
+
+.comment {
+	text-align:center;
+	margin-top: 0px;
+	color:grey;
+	font-size:70%;
+	font-style:italic;
+}
+
+.comment a {
+    color:darkgrey;
+}

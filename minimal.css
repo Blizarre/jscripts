@@ -1,0 +1,11 @@
+/* Contains the definitions that will have to be consistent all over the website */
+
+.backLink { 
+    display:block;
+    margin-top: 20px;
+    padding-top: 15px;;
+    border-top: 1px solid black;
+    text-align:center;
+    width:256px;
+    margin-right:auto;
+}
