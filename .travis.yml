@@ -1,0 +1,8 @@
+language: node_js
+node_js: "6"
+script:
+      - s3cmd sync --delete-removed -P -M -r . s3://marache.net-static/projects/jscripts/
+      - s3cmd sync --delete-removed -P -M -r . s3://test.marache.net/projects/jscripts/
+notifications:
+    email:
+        on_failure: always
